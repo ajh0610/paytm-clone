@@ -7,7 +7,7 @@ const user = require('./routes/user');
 app.use(express.json());
 app.use(cors());
 
-app.use('/user', user);
+app.use('/api/v1/user', user);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

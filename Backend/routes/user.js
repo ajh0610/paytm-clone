@@ -2,6 +2,7 @@ const {Router} = require('express');
 const {userSigninSchema, userSignUpSchema} = require('../schemas/user')
 const {User} = require('../db/db');
 const jwt = require("jsonwebtoken");
+const {JWT_SECRET} = require("../config")
 
 
 const router = Router();
@@ -53,7 +54,7 @@ router.post('/signin', async (req, res)=>{
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName
-    }, "secret")
+    }, JWT_SECRET)
 
     res.json({
         token: token
