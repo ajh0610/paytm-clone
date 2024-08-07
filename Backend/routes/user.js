@@ -67,6 +67,7 @@ router.post('/signin', async (req, res)=>{
         return res.json({mssg: "User Not Found!"})
     }
     const token = jwt.sign({
+        userId: user._id,
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName
