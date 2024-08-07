@@ -8,7 +8,7 @@ const {JWT_SECRET} = require("../config")
 const router = Router();
 
 
-router.post('/signup', (req, res)=>{
+router.post('/signup', async (req, res)=>{
     
     const validation = userSignUpSchema.safeParse(req.body);
 
@@ -23,12 +23,29 @@ router.post('/signup', (req, res)=>{
     const firstName = req.body.firstName;
     const lastName = req.body.lastName;
 
+    const findUser = await User.findOne({username: username});
+    if(findUser){
+        return res.status(411).json({mssg: "User Already Exsist!"});
+    }
+
     const user = new User({username, password, firstName, lastName});
-    user.save().then(()=>{
-        res.json({mssg :"User Saved Succesfully!"});
-    }).catch((error)=>{
-        res.json(error);
-    })
+
+    try{
+        await user.save();
+    
+        const token = jwt.sign({
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName
+        }, JWT_SECRET);
+    
+        res.status(200).json({mssg: "User Created Succesfully!", token: token});
+    } catch(error){
+
+        res.status(500).json({mssg: "Internal Server Error!"});
+    }
+    
+
 })
 
 router.post('/signin', async (req, res)=>{
@@ -36,8 +53,8 @@ router.post('/signin', async (req, res)=>{
     const validation = userSigninSchema.safeParse(req.body);
 
     if(validation.error){
-        return res.json({
-            mssg:"Error"
+        return res.status(411).json({
+            mssg:"Error while logging in!"
         })
     }
 
@@ -49,14 +66,13 @@ router.post('/signin', async (req, res)=>{
     if(!user){
         return res.json({mssg: "User Not Found!"})
     }
-    console.log(user);
     const token = jwt.sign({
         username: user.username,
         firstName: user.firstName,
         lastName: user.lastName
     }, JWT_SECRET)
 
-    res.json({
+    res.status(200).json({
         token: token
     })
 })
