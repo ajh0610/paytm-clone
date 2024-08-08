@@ -2,11 +2,12 @@ const {Router} = require('express');
 
 const {Accounts} = require('../db/db');
 const { default: mongoose } = require('mongoose');
+const { authmiddleware } = require('../authentication/middlewares');
 
 const router = Router();
 
 
-router.get('/balance', async (req, res) => {
+router.get('/balance', authmiddleware, async (req, res) => {
 
     const userId = req.userId;
     try{
@@ -18,7 +19,7 @@ router.get('/balance', async (req, res) => {
 
 })
 
-router.post('/transfer', async (req, res)=>{
+router.post('/transfer', authmiddleware, async (req, res)=>{
    
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -47,6 +48,7 @@ router.post('/transfer', async (req, res)=>{
     
         res.status(200).json({mssg: "Transfer was Succesfull!"});
     } catch(e){
+        console.log(e);
         await session.abortTransaction();
         res.status(500).json({mssg: "Error while doing transaction!"})
     }

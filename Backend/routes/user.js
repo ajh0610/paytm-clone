@@ -1,9 +1,9 @@
 const {Router} = require('express');
 const {userSigninSchema, userSignUpSchema, updateUserSchema} = require('../schemas/user')
-const {User, Account} = require('../db/db');
+const {User, Accounts} = require('../db/db');
 const jwt = require("jsonwebtoken");
 const {JWT_SECRET} = require("../config")
-const {authMiddleware} = require('../authentication/middlewares');
+const {authmiddleware} = require('../authentication/middlewares');
 
 
 const router = Router();
@@ -32,13 +32,10 @@ router.post('/signup', async (req, res)=>{
 
     const user = new User({username, password, firstName, lastName});
 
-    
-
-
     try{
         const userReturn = await user.save();
 
-        const accountUser = new Account({useId: userReturn._id, balance:1 + Math.random()*1000})
+        const accountUser = new Accounts({userId: userReturn._id, balance:1 + Math.random()*1000})
 
         await accountUser.save();
     
@@ -51,7 +48,7 @@ router.post('/signup', async (req, res)=>{
     
         res.status(200).json({mssg: "User Created Succesfully!", token: token});
     } catch(error){
-
+        console.log(error);
         res.status(500).json({mssg: "Internal Server Error!"});
     }
     
@@ -88,7 +85,7 @@ router.post('/signin', async (req, res)=>{
     })
 })
 
-router.put('/', authMiddleware, async (req, res)=>{
+router.put('/', authmiddleware, async (req, res)=>{
     const body = req.body;
     const userId = req.userId;
 
@@ -107,13 +104,13 @@ router.put('/', authMiddleware, async (req, res)=>{
 })
 
 
-router.get('/user/bulk', authMiddleware, async (req, res)=>{
-    const qName = req.query.filter;
+router.get('/bulk', authmiddleware, async (req, res)=>{
+    const qName = req.query.filter || '';
     
     try{
         const users = await User.find({ $or: [{ firstName: {"$regex": qName}}, { lastName:  {"$regex": qName}}]});
     
-        res.send(200).json({
+        res.status(200).json({
             users: users.map((ele)=>{
                 return {
                     firstName: ele.firstName,
@@ -124,7 +121,7 @@ router.get('/user/bulk', authMiddleware, async (req, res)=>{
             })
         })
     } catch(e){
-        res.send(500).send("Internal Server Error!")
+        res.status(500).send("Internal Server Error!")
     }
 })
 module.exports = router;
