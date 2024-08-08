@@ -8,5 +8,17 @@ const User = mongoose.model('User', {
     lastName: String,
 })
 
+const Accounts = mongoose.model('Account', {
+    userId: {
+        type: Schema.Types.ObjectId, 
+        ref: "User", 
+        required: true
+    },
+    balance: {
+        type: Number,
+        required: true
+    }
+})
 
-module.exports = {User}
+
+module.exports = {User, Account}
