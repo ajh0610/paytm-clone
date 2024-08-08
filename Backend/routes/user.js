@@ -1,6 +1,6 @@
 const {Router} = require('express');
 const {userSigninSchema, userSignUpSchema, updateUserSchema} = require('../schemas/user')
-const {User} = require('../db/db');
+const {User, Account} = require('../db/db');
 const jwt = require("jsonwebtoken");
 const {JWT_SECRET} = require("../config")
 const {authMiddleware} = require('../authentication/middlewares');
@@ -24,6 +24,7 @@ router.post('/signup', async (req, res)=>{
     const firstName = req.body.firstName;
     const lastName = req.body.lastName;
 
+
     const findUser = await User.findOne({username: username});
     if(findUser){
         return res.status(411).json({mssg: "User Already Exsist!"});
@@ -31,13 +32,21 @@ router.post('/signup', async (req, res)=>{
 
     const user = new User({username, password, firstName, lastName});
 
+    
+
+
     try{
-        await user.save();
+        const userReturn = await user.save();
+
+        const accountUser = new Account({useId: userReturn._id, balance:1 + Math.random()*1000})
+
+        await accountUser.save();
     
         const token = jwt.sign({
             username: user.username,
             firstName: user.firstName,
-            lastName: user.lastName
+            lastName: user.lastName,
+            userId: userReturn._id
         }, JWT_SECRET);
     
         res.status(200).json({mssg: "User Created Succesfully!", token: token});

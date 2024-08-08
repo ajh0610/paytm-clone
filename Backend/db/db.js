@@ -21,4 +21,4 @@ const Accounts = mongoose.model('Account', {
 })
 
 
-module.exports = {User, Account}
+module.exports = {User, Accounts}
